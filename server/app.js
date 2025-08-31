@@ -8,8 +8,11 @@ import { v2 as cloudinary } from "cloudinary";
 import { Server } from "socket.io";
 import { createServer } from "node:http";
 import {
+  CHAT_JOINED,
+  CHAT_LEAVED,
   NEW_MESSAGE,
   NEW_MESSAGE_ALERT,
+  ONLINE_USERS,
   START_TYPING,
   STOP_TYPING,
 } from "./constants/event.js";
@@ -31,9 +34,9 @@ dotenv.config({
 const mongo_URL = process.env.MONGO_URL;
 const PORT = process.env.PORT || 3000;
 const envMode = process.env.NODE_ENV.trim() || "PRODUCTION";
-const adminSecretKey =
-  process.env.ADMIN_SECRET_KEY || "admin1";
+const adminSecretKey = process.env.ADMIN_SECRET_KEY || "admin1";
 const userSocketIDs = new Map();
+const onlineUsers = new Set();
 
 connectDB(mongo_URL);
 // createUser(10);
@@ -111,25 +114,42 @@ io.on("connection", (socket) => {
     try {
       await Message.create(messageForDB);
     } catch (error) {
-      console.log(error);
+      // console.log(error);
+      throw new Error(error);
     }
   });
 
   socket.on(START_TYPING, ({ members, chatId }) => {
-    console.log("start-typing", chatId);
+
 
     const membersSockets = getSockets(members);
     socket.to(membersSockets).emit(START_TYPING, { chatId });
   });
 
   socket.on(STOP_TYPING, ({ members, chatId }) => {
-    console.log("stop-typing", chatId);
+
     const membersSockets = getSockets(members);
     socket.to(membersSockets).emit(STOP_TYPING, { chatId });
   });
 
+  socket.on(CHAT_JOINED, ({ userId, members }) => {
+    onlineUsers.add(userId.toString());
+    const membersSockets = getSockets(members);
+
+    io.to(membersSockets).emit(ONLINE_USERS, Array.from(onlineUsers));
+  });
+  socket.on(CHAT_LEAVED, ({ userId, members }) => {
+    onlineUsers.delete(userId.toString());
+    const membersSockets = getSockets(members);
+
+    io.to(membersSockets).emit(ONLINE_USERS, Array.from(onlineUsers));
+  });
+
   socket.on("disconnect", () => {
-    console.log("User Disconnected");
+
+    userSocketIDs.delete(user._id.toString());
+    onlineUsers.delete(user._id.toString());
+    socket.broadcast.emit(ONLINE_USERS, Array.from(onlineUsers));
   });
 });
 
