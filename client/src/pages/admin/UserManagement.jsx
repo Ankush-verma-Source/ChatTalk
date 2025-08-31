@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { Avatar } from "@mui/material";
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 import AdminLayout from "../../components/layout/AdminLayout";
 import Table from "../../components/shared/Table";
-import { Avatar } from "@mui/material";
-import { useEffect } from "react";
-import { dashboardData } from "../../constants/sampleData";
-import {transformImage} from "../../lib/features";
+import { server } from "../../constants/config";
+import { transformImage } from "../../lib/features";
 const columns = [
   {
     field: "id",
@@ -37,7 +37,7 @@ const columns = [
     field: "friends",
     headerName: "Friends",
     headerClassName: "table-header",
-    width: 150
+    width: 150,
   },
   {
     field: "groups",
@@ -50,10 +50,37 @@ function UserManagement() {
   const [rows, setRows] = useState([]);
 
   useEffect(() => {
-    setRows(dashboardData.users.map((i)=>({...i, id:i._id, avatar:transformImage(i.avatar, 50)})));
-  },[])
+    const fetchStats = async () => {
+      try {
+        const res = await fetch(`${server}/api/v1/admin/users`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        });
+        const data = await res.json();
+        // console.log(data);
+
+        if (data.users && data.users.length > 0) {
+          const transformedRows = data.users.map((user) => ({
+            ...user,
+            id: user._id,
+            avatar: transformImage(user.avatar, 50),
+          }));
+
+          setRows(transformedRows);
+        }
+      } catch (err) {
+        toast.error(err.message);
+      }
+    };
+    fetchStats();
+  }, []);
+
   return (
     <AdminLayout>
+      {}
       <Table heading={"All Users"} columns={columns} rows={rows} />
     </AdminLayout>
   );

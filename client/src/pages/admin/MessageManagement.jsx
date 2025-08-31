@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AdminLayout from "../../components/layout/AdminLayout";
 import Table from "../../components/shared/Table";
-import { useEffect } from "react";
-import { dashboardData } from "../../constants/sampleData";
-import { fileFormat, transformImage } from "../../lib/features";
-import moment from "moment";
+// import { dashboardData } from "../../constants/sampleData";
 import { Avatar, Box, Stack } from "@mui/material";
+import moment from "moment";
+import toast from "react-hot-toast";
 import RenderAttachment from "../../components/shared/RenderAttachment";
+import { server } from "../../constants/config";
+import { fileFormat, transformImage } from "../../lib/features";
 const columns = [
   {
     field: "id",
@@ -15,20 +16,25 @@ const columns = [
     width: 200,
   },
   {
-    field: "attachments",
+    field: "attachements",
     headerName: "Attachments",
     headerClassName: "table-header",
     width: 200,
     renderCell: (params) => {
-      const { attachments } = params.row;
+      const { attachements } = params.row;
 
-      return attachments?.length > 0
-        ? attachments.map((i) => {
+      return attachements?.length > 0
+        ? attachements.map((i) => {
             const url = i.url;
             const file = fileFormat(url);
 
             return (
-              <Box display="flex" justifyContent="center" alignItems="center" height="100%">
+              <Box
+                display="flex"
+                justifyContent="center"
+                alignItems="center"
+                height="100%"
+              >
                 <a
                   href={url}
                   download
@@ -84,19 +90,53 @@ function MessageManagement() {
   const [rows, setRows] = useState([]);
 
   useEffect(() => {
-    setRows(
-      dashboardData.messages.map((i) => ({
-        ...i,
-        id: i._id,
-        sender: {
-          name: i.sender.name,
-          avatar: transformImage(i.sender.avatar, 50),
-        },
+    const fetchStats = async () => {
+      try {
+        const res = await fetch(`${server}/api/v1/admin/messages`, {
+          method: "GET",
+          // headers: {
+          //   "Content-Type": "application/json",
+          // },
+          credentials: "include",
+        });
+        const data = await res.json();
+        console.log(data);
 
-        createdAt: moment(i.createdAt).format("MMMM Do YYYY, h:mm:ss a"),
-      }))
-    );
+        if (data.messages && data.messages.length > 0) {
+          const transformedRows = data.messages.map((i) => ({
+            ...i,
+            id: i._id,
+            sender: {
+              name: i.sender.name,
+              avatar: transformImage(i.sender.avatar, 50),
+            },
+
+            createdAt: moment(i.createdAt).format("MMMM Do YYYY, h:mm:ss a"),
+          }));
+
+          setRows(transformedRows);
+        }
+      } catch (err) {
+        toast.error(err.message);
+      }
+    };
+    fetchStats();
   }, []);
+
+  // useEffect(() => {
+  //   setRows(
+  //     dashboardData.messages.map((i) => ({
+  //       ...i,
+  //       id: i._id,
+  //       sender: {
+  //         name: i.sender.name,
+  //         avatar: transformImage(i.sender.avatar, 50),
+  //       },
+
+  //       createdAt: moment(i.createdAt).format("MMMM Do YYYY, h:mm:ss a"),
+  //     }))
+  //   );
+  // }, []);
   return (
     <AdminLayout>
       <Table

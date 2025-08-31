@@ -15,49 +15,54 @@ import {
 } from "../../components/styles/styledComponents.jsx";
 import { matBlack } from "../../constants/color.js";
 
-import { useFetchData } from "6pp";
+// import { useFetchData } from "6pp";
 import { server } from "../../constants/config.js";
 // import { LayoutLoader } from "../../components/layout/Loaders";
 // import { useErrors } from "../../hooks/hook";
-// import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 
+2
 function Dashboard() {
-  const { /*loading,*/ data, error } = useFetchData(
-    "http://localhost:3000/api/v1/admin/stats/",
-    "dashboard-stats",
-      {
-    credentials: "include",   // ensures cookie gets sent
-  }
-  );
-  console.log(`${server}/api/v1/admin/stats`);
-  console.log("Dashboard error:", error);
-  console.log("Dashboard data:", data);
+//   const { /*loading,*/ data, error } = useFetchData(
+//     "http://localhost:3000/api/v1/admin/stats/",
+//     "dashboard-stats",
+//       {
+//     credentials: "include",   // ensures cookie gets sent
+//   }
+//   );
+//   console.log(`${server}/api/v1/admin/stats`);
+//   console.log("Dashboard error:", error);
+//   console.log("Dashboard data:", data);
 
   // const { stats } = data || {};
 
   // useErrors([{ isError: error, error: error }]);
 
 
+const [stats , setStats] = useState({});
 
-
-//   const fetchStats = async () => {
-//   try {
-//     const res = await fetch("http://localhost:3000/api/v1/admin/stats", {
-//       method: "GET",
-//       headers: {
-//         "Content-Type": "application/json",
-//         // "Authorization": `Bearer ${token}` // add if needed
-//       },
-//       credentials: "include"
-//     });
-//     const data = await res.json();
-//   } catch (err) {
-//     console.error(err);
-//   }
-// };
-// useEffect(()=>{
-//   fetchStats();
-// },[]);
+  const fetchStats = async () => {
+  try {
+    const res = await fetch(`${server}/api/v1/admin/stats`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        // "Authorization": `Bearer ${token}` // add if needed
+      },
+      credentials: "include"
+    });
+    const data = await res.json();
+    // console.log(data);
+    let stats = data.stats || {};
+    setStats(stats);
+  } catch (err) {
+    toast.error(err.message);
+  }
+};
+useEffect(()=>{
+  fetchStats();
+},[]);
 
   const Appbar = (
     <Paper
@@ -91,11 +96,11 @@ function Dashboard() {
       alignItems="center"
       margin={"2rem 0"}
     >
-      <Widget title={"Users"} value={/*stats?.usersCount*/ 45} Icon={<PersonIcon />} />
-      <Widget title={"Chats"} value={/*stats?.groupsCount*/ 78} Icon={<GroupIcon />} />
+      <Widget title={"Users"} value={stats?.usersCount /*45*/} Icon={<PersonIcon />} />
+      <Widget title={"Chats"} value={stats?.totalChatsCount /*78*/} Icon={<GroupIcon />} />
       <Widget
         title={"Messages"}
-        value={/*stats?.messagesCount*/456}
+        value={stats?.messagesCount/*456*/}
         Icon={<MessageIcon />}
       />
     </Stack>
@@ -128,7 +133,7 @@ function Dashboard() {
             <Typography margin={"2rem 0"} variant="h4">
               Last Messages
             </Typography>
-            <LineChart value={/*stats?.messagesChart || []*/[23,12,3,14,54,4,6]} />
+            <LineChart value={stats?.messagesChart || []/*[23,12,3,14,54,4,6]*/} />
           </Paper>
           <Paper
             elevation={3}
@@ -145,10 +150,10 @@ function Dashboard() {
           >
             <DoughnutChart
               labels={["Single Chats", "Group Chats"]}
-              value={/*[
-                stats?.totalChatsCount - stats?.groupChats || 0,
-                stats?.groupChats || 0,
-              ]*/[23,12]}
+              value={[
+                stats?.totalChatsCount - stats?.groupsCount || 0,
+                stats?.groupsCount || 0,
+              ]/*[23,12]*/}
             />
             <Stack
               position={"absolute"}

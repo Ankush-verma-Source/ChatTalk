@@ -3,9 +3,11 @@ import AdminLayout from "../../components/layout/AdminLayout";
 import Table from "../../components/shared/Table";
 import { Avatar, Stack } from "@mui/material";
 import { useEffect } from "react";
-import { dashboardData } from "../../constants/sampleData";
+// import { dashboardData } from "../../constants/sampleData";
 import { transformImage } from "../../lib/features";
 import AvatarCard from "../../components/shared/AvatarCard";
+import { server } from "../../constants/config";
+import toast from "react-hot-toast";
 
 const columns = [
   {
@@ -26,6 +28,12 @@ const columns = [
     headerName: "Name",
     headerClassName: "table-header",
     width: 300,
+  },
+  {
+    field: "groupChat",
+    headerName: "Group",
+    headerClassName: "table-header",
+    width: 100,
   },
   {
     field: "totalMembers",
@@ -65,19 +73,53 @@ function ChatManagement() {
   const [rows, setRows] = useState([]);
 
   useEffect(() => {
-    setRows(
-      dashboardData.chats.map((i) => ({
-        ...i,
-        id: i._id,
-        avatar: i.avatar.map((i) => transformImage(i, 50)),
-        members: i.members.map((i) => transformImage(i.avatar, 50)),
-        creator:{
-          name:i.creator.name,
-          avatar:transformImage(i.creator.avatar, 50)
-        },
-      }))
-    );
+    const fetchStats = async () => {
+      try {
+        const res = await fetch(`${server}/api/v1/admin/chats`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        });
+        const data = await res.json();
+        // console.log(data);
+
+        if (data.chats && data.chats.length > 0) {
+          const transformedRows = data.chats.map((i) => ({
+            ...i,
+            id: i._id,
+            avatar: i.avatar.map((i) => transformImage(i, 50)),
+            members: i.members.map((i) => transformImage(i.avatar, 50)),
+            creator: {
+              name: i.creator.name,
+              avatar: transformImage(i.creator.avatar, 50),
+            },
+          }));
+
+          setRows(transformedRows);
+        }
+      } catch (err) {
+        toast.error(err.message);
+      }
+    };
+    fetchStats();
   }, []);
+
+  // useEffect(() => {
+  //   setRows(
+  //     dashboardData.chats.map((i) => ({
+  //       ...i,
+  //       id: i._id,
+  //       avatar: i.avatar.map((i) => transformImage(i, 50)),
+  //       members: i.members.map((i) => transformImage(i.avatar, 50)),
+  //       creator:{
+  //         name:i.creator.name,
+  //         avatar:transformImage(i.creator.avatar, 50)
+  //       },
+  //     }))
+  //   );
+  // }, []);
   return (
     <AdminLayout>
       <Table heading={"All Chats"} columns={columns} rows={rows} />

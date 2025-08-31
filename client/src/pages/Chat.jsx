@@ -8,22 +8,25 @@ import FileMenu from "../components/dialogs/FileMenu";
 import { InputBox } from "../components/styles/styledComponents";
 import { grayColor, orange } from "../constants/color";
 
+import { useInfiniteScrollTop } from "6pp";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { useChatDetailsQuery, useGetMessagesQuery } from "../app/api";
+import { TypingLoader } from "../components/layout/Loaders";
 import MessageComponent from "../components/shared/MessageComponent";
 import {
   ALERT,
+  CHAT_JOINED,
+  CHAT_LEAVED,
   NEW_MESSAGE,
   START_TYPING,
   STOP_TYPING,
 } from "../constants/event";
+import { removeNewMessagesAlert } from "../features/chat/chat";
+import { setIsFileMenu } from "../features/misc/misc";
 import { useErrors, useSocketEvents } from "../hooks/hook";
 import useSocket from "../useSocket";
-import { useInfiniteScrollTop } from "6pp";
-import { useDispatch } from "react-redux";
-import { setIsFileMenu } from "../features/misc/misc";
-import { removeNewMessagesAlert } from "../features/chat/chat";
-import { TypingLoader } from "../components/layout/Loaders";
-import { useNavigate } from "react-router-dom";
+
 
 function Chat({ chatId, user }) {
   // console.log(chatId);
@@ -90,18 +93,21 @@ function Chat({ chatId, user }) {
     e.preventDefault();
 
     if (!message.trim()) return;
+
     socket.emit(NEW_MESSAGE, { chatId, members, message });
 
     setMessage("");
   };
 
   useEffect(() => {
+    socket.emit(CHAT_JOINED, {userId:user._id, members} );
     dispatch(removeNewMessagesAlert(chatId));
     return () => {
       setMessages([]);
       setOldMessages([]);
       setPage(1);
       setMessage("");
+      socket.emit(CHAT_LEAVED, {userId:user._id, members} );
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [chatId]);
