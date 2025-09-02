@@ -181,8 +181,14 @@ const User = mongoose.models.User || mongoose.model("User", userSchema);
 
 
 
-
-
-
 // framer motion : 
 import { motion } from "framer-motion";
+
+
+
+
+
+// Deployment : in vercel for reloading then give error that why we use this by creating any file like : vercel.json(outside of src foler)
+// {
+//   "rewrites":[{"source": "/(.*)", "destination": "/index.html"}]
+// }
