@@ -52,7 +52,7 @@ function Title1({
   title = "Chat App",
   description = "this is the Chat App called ChatTalk",
 }) {
-  return (
+  return (// use headerprovider only if we haven't set in main.js
     <HeadProvider>
       {/* Head elements */}
       <Title>{title}</Title>
