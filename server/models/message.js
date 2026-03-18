@@ -24,7 +24,35 @@ const messageSchema = mongoose.Schema(
           required: true,
         },
       },
-    ]
+    ],
+    reactions: [
+      {
+        emoji: String,
+        user: {
+          type: mongoose.Types.ObjectId,
+          ref: "User",
+        },
+      },
+    ],
+    replyTo: {
+      messageId: {
+        type: mongoose.Types.ObjectId,
+        ref: "Message",
+      },
+      senderName: String,
+      content: String,
+    },
+    status: {
+      type: String,
+      enum: ["sent", "delivered", "seen"],
+      default: "sent",
+    },
+    readBy: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: "User",
+      },
+    ],
   },
   {
     timestamps: true,

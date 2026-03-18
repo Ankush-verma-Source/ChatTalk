@@ -20,6 +20,7 @@ import { v4 as uuidv4 } from "uuid";
 import { getSockets } from "./lib/helper.js";
 import cors from "cors";
 import Message from "./models/message.js";
+import User from "./models/user.js";
 import { corsOptions } from "./constants/config.js";
 import { socketAuthenticator } from "./middlewares/auth.js";
 
@@ -33,7 +34,7 @@ dotenv.config({
 
 const mongo_URL = process.env.MONGO_URL;
 const PORT = process.env.PORT || 3000;
-const envMode = process.env.NODE_ENV.trim() || "PRODUCTION";
+const envMode = (process.env.NODE_ENV || "PRODUCTION").trim();
 const adminSecretKey = process.env.ADMIN_SECRET_KEY || "admin1";
 const userSocketIDs = new Map();
 const onlineUsers = new Set();
@@ -81,10 +82,12 @@ io.use((socket, next) => {
 io.on("connection", (socket) => {
   const user = socket.user;
   userSocketIDs.set(user._id.toString(), socket.id);
+  onlineUsers.add(user._id.toString());
+  io.emit(ONLINE_USERS, Array.from(onlineUsers));
 
   // console.log(userSocketIDs);
 
-  socket.on(NEW_MESSAGE, async ({ chatId, members, message }) => {
+  socket.on(NEW_MESSAGE, async ({ chatId, members, message, replyTo }) => {
     const messageForRealTime = {
       content: message,
       _id: uuidv4(),
@@ -94,12 +97,14 @@ io.on("connection", (socket) => {
       },
       chat: chatId,
       createdAt: new Date().toISOString(),
+      ...(replyTo && { replyTo }),
     };
 
     const messageForDB = {
       content: message,
       sender: user._id,
       chat: chatId,
+      ...(replyTo && { replyTo }),
     };
 
     const membersSocket = getSockets(members);
@@ -145,10 +150,13 @@ io.on("connection", (socket) => {
     io.to(membersSockets).emit(ONLINE_USERS, Array.from(onlineUsers));
   });
 
-  socket.on("disconnect", () => {
+  socket.on("disconnect", async () => {
 
-    userSocketIDs.delete(user._id.toString());
-    onlineUsers.delete(user._id.toString());
+    if (user?._id) {
+      userSocketIDs.delete(user._id.toString());
+      onlineUsers.delete(user._id.toString());
+      await User.findByIdAndUpdate(user._id, { lastSeen: new Date() });
+    }
     socket.broadcast.emit(ONLINE_USERS, Array.from(onlineUsers));
   });
 });

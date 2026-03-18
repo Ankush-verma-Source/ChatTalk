@@ -4,6 +4,11 @@ import {
   NEW_MESSAGE,
   NEW_MESSAGE_ALERT,
   REFETCH_CHATS,
+  DELETE_MESSAGE,
+  EDIT_MESSAGE,
+  REACT_MESSAGE,
+  MESSAGE_READ,
+  CLEAR_MESSAGES,
 } from "../constants/event.js";
 import { getOtherMember } from "../lib/helper.js";
 import { TryCatch } from "../middlewares/error.js";
@@ -284,16 +289,23 @@ const getChatDetails = TryCatch(async (req, res, next) => {
   // console.log(req.params.id);
   if (req.query.populate === "true") {
     const chat = await Chat.findById(req.params.id)
-      .populate("members", "name avatar")
+      .populate("members", "name avatar bio username createdAt")
       .lean();
 
     if (!chat) return next(new ErrorHandler("Chat not found", 404));
 
-    chat.members = chat.members.map(({ _id, name, avatar }) => ({
+    chat.members = chat.members.map(({ _id, name, avatar, bio, username, createdAt }) => ({
       _id,
       name,
+      bio,
+      username,
+      createdAt,
       avatar: avatar.url,
     }));
+
+    if (chat.groupChat) {
+      chat.avatar = { url: chat.members[0]?.avatar };
+    }
 
     return res.status(200).json({
       success: true,
@@ -386,6 +398,50 @@ const deleteChat = TryCatch(async (req, res, next) => {
   });
 });
 
+const clearMessages = TryCatch(async (req, res, next) => {
+  const chatId = req.params.id;
+
+  const chat = await Chat.findById(chatId);
+
+  if (!chat) return next(new ErrorHandler("Chat not found", 404));
+
+  if (chat.groupChat && chat.creator.toString() !== req.user.toString()) {
+    return next(
+      new ErrorHandler("You are not allowed to clear the group", 403)
+    );
+  }
+  
+  if (!chat.groupChat && !chat.members.includes(req.user.toString())) {
+    return next(
+      new ErrorHandler("You are not allowed to clear the chat", 403)
+    );
+  }
+
+  const messageWithAttachments = await Message.find({
+    chat: chatId,
+    attachments: { $exists: true, $ne: [] },
+  });
+
+  const public_ids = [];
+
+  messageWithAttachments.forEach(({ attachments }) =>
+    attachments.forEach(({ public_id }) => public_ids.push(public_id))
+  );
+
+  await Promise.all([
+    deleteFilesFromCloudinary(public_ids),
+    Message.deleteMany({ chat: chatId }),
+  ]);
+
+  emitEvent(req, REFETCH_CHATS, chat.members);
+  emitEvent(req, CLEAR_MESSAGES, chat.members, { chatId });
+
+  return res.status(200).json({
+    success: true,
+    message: "Chat cleared successfully",
+  });
+});
+
 const getMessages = TryCatch(async (req, res, next) => {
   // console.log("called............................");
   const { id: chatId } = req.params;
@@ -424,9 +480,161 @@ const getMessages = TryCatch(async (req, res, next) => {
   });
 });
 
+const deleteMessage = TryCatch(async (req, res, next) => {
+  const { id } = req.params;
+
+  const message = await Message.findById(id).populate("chat");
+
+  if (!message) return next(new ErrorHandler("Message not found", 404));
+
+  if (message.sender.toString() !== req.user.toString()) {
+    return next(new ErrorHandler("You can only delete your own messages", 403));
+  }
+
+  const chat = message.chat;
+
+  // Delete attachments from Cloudinary if any
+  if (message.attachements && message.attachements.length > 0) {
+    const public_ids = message.attachements.map((a) => a.public_id);
+    await deleteFilesFromCloudinary(public_ids);
+  }
+
+  await message.deleteOne();
+
+  emitEvent(req, DELETE_MESSAGE, chat.members, {
+    messageId: id,
+    chatId: chat._id,
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: "Message deleted successfully",
+  });
+});
+
+const editMessage = TryCatch(async (req, res, next) => {
+  const { id } = req.params;
+  const { content } = req.body;
+
+  const message = await Message.findById(id).populate("chat");
+
+  if (!message) return next(new ErrorHandler("Message not found", 404));
+
+  if (message.sender.toString() !== req.user.toString()) {
+    return next(new ErrorHandler("You can only edit your own messages", 403));
+  }
+
+  message.content = content;
+  await message.save();
+
+  emitEvent(req, EDIT_MESSAGE, message.chat.members, {
+    messageId: id,
+    content,
+    chatId: message.chat._id,
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: "Message updated successfully",
+  });
+});
+
+const reactMessage = TryCatch(async (req, res, next) => {
+  const { id } = req.params;
+  const { emoji } = req.body;
+
+  const message = await Message.findById(id).populate("chat");
+
+  if (!message) return next(new ErrorHandler("Message not found", 404));
+
+  // Check if already reacted with the same emoji
+  const existingReactionIndex = message.reactions.findIndex(
+    (r) => r.user.toString() === req.user.toString() && r.emoji === emoji
+  );
+
+  let updatedReactions = [...message.reactions];
+  if (existingReactionIndex > -1) {
+    // Toggle reaction off
+    updatedReactions.splice(existingReactionIndex, 1);
+  } else {
+    // Add reaction
+    updatedReactions.push({ user: req.user, emoji });
+  }
+
+  message.reactions = updatedReactions;
+  await message.save();
+
+  emitEvent(req, REACT_MESSAGE, message.chat.members, {
+    messageId: id,
+    reactions: updatedReactions,
+    chatId: message.chat._id,
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: "Reaction updated successfully",
+    reactions: updatedReactions,
+  });
+});
+
+const markAsRead = TryCatch(async (req, res, next) => {
+  const { chatId } = req.body;
+
+  const chat = await Chat.findById(chatId);
+  if (!chat) return next(new ErrorHandler("Chat not found", 404));
+
+  // Update all messages in this chat to include this user in readBy
+  await Message.updateMany(
+    {
+      chat: chatId,
+      sender: { $ne: req.user },
+      readBy: { $ne: req.user },
+    },
+    {
+      $addToSet: { readBy: req.user },
+      $set: { status: "seen" },
+    }
+  );
+
+  emitEvent(req, MESSAGE_READ, chat.members, {
+    chatId,
+    userId: req.user,
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: "Messages marked as read",
+  });
+});
+
+const searchMessages = TryCatch(async (req, res, next) => {
+  const { id: chatId } = req.params;
+  const { query } = req.query;
+
+  if (!query) {
+    return res.status(200).json({
+      success: true,
+      messages: [],
+    });
+  }
+
+  const messages = await Message.find({
+    chat: chatId,
+    content: { $regex: query, $options: "i" },
+  })
+    .populate("sender", "name")
+    .lean();
+
+  return res.status(200).json({
+    success: true,
+    messages,
+  });
+});
+
 export {
   addMembers,
   deleteChat,
+  clearMessages,
   getChatDetails,
   getMessages,
   getMychats,
@@ -436,4 +644,9 @@ export {
   removeMember,
   renameGroup,
   sendAttachements,
+  deleteMessage,
+  editMessage,
+  reactMessage,
+  markAsRead,
+  searchMessages,
 };

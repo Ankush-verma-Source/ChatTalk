@@ -28,9 +28,15 @@ const InputBox = styled("input")`
   height: 100%;
   border: none;
   outline: none;
-  padding: 0 3rem;
-  border-radius: 1.5rem;
-  background-color: ${grayColor};
+  padding: 0.75rem 3.5rem;
+  border-radius: 14px;
+  background-color: rgba(15, 23, 42, 0.7);
+  color: #e2e8f0;
+  font-size: 0.9rem;
+  font-family: 'Inter', sans-serif;
+  &::placeholder {
+    color: #475569;
+  }
 `;
 const SearchField = styled("input")`
   padding: 1rem 2rem;

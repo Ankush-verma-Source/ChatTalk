@@ -76,7 +76,20 @@ const uploadFilesToCloudinary = async (files = []) => {
 };
 
 const deleteFilesFromCloudinary = async (public_ids) => {
-  // Delete files from cloudinary
+  const deletePromises = public_ids.map((id) => {
+    return new Promise((resolve, reject) => {
+      cloudinary.uploader.destroy(id, (error, result) => {
+        if (error) return reject(error);
+        resolve(result);
+      });
+    });
+  });
+
+  try {
+    await Promise.all(deletePromises);
+  } catch (err) {
+    throw new Error("Error deleting files from Cloudinary", err);
+  }
 };
 export {
   connectDB,

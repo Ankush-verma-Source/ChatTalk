@@ -31,6 +31,10 @@ const userSchema = new mongoose.Schema(
         required: true,
       },
     },
+    lastSeen: {
+      type: Date,
+      default: Date.now,
+    },
   },
   {
     timestamps: true,

@@ -137,6 +137,47 @@ const api = createApi({
       }),
       invalidatesTags: ["Chat"],
     }),
+    clearChat: builder.mutation({
+      query: (chatId) => ({
+        url: `chat/clear/${chatId}`,
+        method: "DELETE",
+        credentials: "include",
+      }),
+      // invalidatesTags: ["Chat"], // Socket will handle message clearing
+    }),
+    deleteMessage: builder.mutation({
+      query: (messageId) => ({
+        url: `chat/message/${messageId}`,
+        method: "DELETE",
+        credentials: "include",
+      }),
+      // We don't invalidate "Message" tag fully to avoid full refetches, 
+      // instead we rely on socket events for real-time update
+    }),
+    editMessage: builder.mutation({
+      query: ({ messageId, content }) => ({
+        url: `chat/message/${messageId}`,
+        method: "PUT",
+        credentials: "include",
+        body: { content },
+      }),
+    }),
+    reactMessage: builder.mutation({
+      query: ({ messageId, emoji }) => ({
+        url: `chat/message/${messageId}/react`,
+        method: "PUT",
+        credentials: "include",
+        body: { emoji },
+      }),
+    }),
+    markAsRead: builder.mutation({
+      query: (chatId) => ({
+        url: `chat/markasread`,
+        method: "POST",
+        credentials: "include",
+        body: { chatId },
+      }),
+    }),
     leaveGroup: builder.mutation({
       query: (chatId) => ({
         url: `chat/leave/${chatId}`,
@@ -144,6 +185,30 @@ const api = createApi({
         credentials: "include",
       }),
       invalidatesTags: ["Chat"],
+    }),
+    updateProfile: builder.mutation({
+      query: (data) => ({
+        url: "user/profile",
+        method: "PUT",
+        credentials: "include",
+        body: data,
+      }),
+      invalidatesTags: ["User"],
+    }),
+    updateAvatar: builder.mutation({
+      query: (data) => ({
+        url: "user/avatar",
+        method: "PUT",
+        credentials: "include",
+        body: data,
+      }),
+      invalidatesTags: ["User"],
+    }),
+    searchMessages: builder.query({
+      query: ({ chatId, query }) => ({
+        url: `chat/search/${chatId}?query=${query}`,
+        credentials: "include",
+      }),
     }),
   }),
 });
@@ -165,5 +230,13 @@ export const {
   useRemoveGroupMemberMutation,
   useAddGroupMembersMutation,
   useDeleteChatMutation,
+  useClearChatMutation,
+  useDeleteMessageMutation,
+  useEditMessageMutation,
+  useReactMessageMutation,
+  useMarkAsReadMutation,
   useLeaveGroupMutation,
+  useUpdateProfileMutation,
+  useUpdateAvatarMutation,
+  useLazySearchMessagesQuery,
 } = api;

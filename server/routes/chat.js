@@ -2,6 +2,7 @@ import express from "express";
 import {
   addMembers,
   deleteChat,
+  clearMessages,
   getChatDetails,
   getMessages,
   getMychats,
@@ -11,6 +12,11 @@ import {
   removeMember,
   renameGroup,
   sendAttachements,
+  deleteMessage,
+  editMessage,
+  reactMessage,
+  markAsRead,
+  searchMessages,
 } from "../controllers/chat.js";
 import {
   addMemberValidator,
@@ -61,5 +67,16 @@ router
   .get(chatIdValidator(), validateHandler, getChatDetails)
   .put(renameValidator(), validateHandler, renameGroup)
   .delete(chatIdValidator(), validateHandler, deleteChat);
+
+router
+  .route("/message/:id")
+  .put(validateHandler, editMessage)
+  .delete(validateHandler, deleteMessage);
+
+router.put("/message/:id/react", validateHandler, reactMessage);
+
+router.post("/markasread", markAsRead);
+router.delete("/clear/:id", chatIdValidator(), validateHandler, clearMessages);
+router.get("/search/:id", chatIdValidator(), validateHandler, searchMessages);
 
 export default router;

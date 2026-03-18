@@ -91,7 +91,31 @@ function App() {
             <Route path="*" element={<NotFound />}></Route>
           </Routes>
         </Suspense>
-        <Toaster position="bottom-center" />
+        <Toaster
+          position="bottom-center"
+          toastOptions={{
+            duration: 3000,
+            style: {
+              background: "#1e293b",
+              color: "#f1f5f9",
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: "14px",
+              fontSize: "0.875rem",
+              fontWeight: 500,
+              boxShadow: "0 16px 40px rgba(0,0,0,0.5)",
+              padding: "12px 16px",
+            },
+            success: {
+              iconTheme: { primary: "#22c55e", secondary: "#0f172a" },
+            },
+            error: {
+              iconTheme: { primary: "#f87171", secondary: "#0f172a" },
+            },
+            loading: {
+              iconTheme: { primary: "#3b82f6", secondary: "#0f172a" },
+            },
+          }}
+        />
       </BrowserRouter>
     </>
   );

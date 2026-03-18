@@ -4,6 +4,7 @@ import {
   emitEvent,
   sendToken,
   uploadFilesToCloudinary,
+  deleteFilesFromCloudinary,
 } from "../utils/features.js";
 import bcrypt from "bcrypt";
 import { ErrorHandler } from "../utils/utility.js";
@@ -253,6 +254,56 @@ const getMyFriends = TryCatch(async (req, res) => {
   }
 });
 
+const updateProfile = TryCatch(async (req, res, next) => {
+  const { name, bio } = req.body;
+
+  const user = await User.findById(req.user);
+
+  if (!user) return next(new ErrorHandler("User not found", 404));
+
+  if (name) user.name = name;
+  if (bio) user.bio = bio;
+
+  await user.save();
+
+  return res.status(200).json({
+    success: true,
+    message: "Profile Updated Successfully",
+    user,
+  });
+});
+
+const updateAvatar = TryCatch(async (req, res, next) => {
+  const file = req.file;
+
+  if (!file) return next(new ErrorHandler("Please provide an avatar", 400));
+
+  const user = await User.findById(req.user);
+
+  if (!user) return next(new ErrorHandler("User not found", 404));
+
+  // Delete old avatar from Cloudinary
+  if (user.avatar && user.avatar.public_id) {
+    await deleteFilesFromCloudinary([user.avatar.public_id]);
+  }
+
+  // Upload new avatar
+  const result = await uploadFilesToCloudinary([file]);
+
+  user.avatar = {
+    public_id: result[0].public_id,
+    url: result[0].url,
+  };
+
+  await user.save();
+
+  return res.status(200).json({
+    success: true,
+    message: "Avatar Updated Successfully",
+    user,
+  });
+});
+
 export {
   login,
   newUser,
@@ -263,4 +314,6 @@ export {
   acceptFriendRequest,
   getMyNotifications,
   getMyFriends,
+  updateProfile,
+  updateAvatar,
 };

@@ -5,7 +5,7 @@ import Header from "./Header";
 
 import ChatList from "../specific/ChatList";
 // import { sampleChats } from "../../constants/sampleData";
-import { cloneElement, useCallback, useEffect, useRef, useState } from "react";
+import { cloneElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useMyChatsQuery } from "../../app/api";
 import {
@@ -84,13 +84,21 @@ function AppLayout({ children }) {
     setOnlineUsers(data);
   }, []);
 
-  const eventHanlders = {
-    [NEW_MESSAGE_ALERT]: newMessageAlertListener,
-    [NEW_REQUEST]: newRequestListener,
-    [REFETCH_CHATS]: refetchListener,
-    [ONLINE_USERS]: onlineUsersListener,
-  };
-  useSocketEvents(socket, eventHanlders);
+  const eventHandlers = useMemo(
+    () => ({
+      [NEW_MESSAGE_ALERT]: newMessageAlertListener,
+      [NEW_REQUEST]: newRequestListener,
+      [REFETCH_CHATS]: refetchListener,
+      [ONLINE_USERS]: onlineUsersListener,
+    }),
+    [
+      newMessageAlertListener,
+      newRequestListener,
+      refetchListener,
+      onlineUsersListener,
+    ]
+  );
+  useSocketEvents(socket, eventHandlers);
 
   return (
     <>
@@ -113,7 +121,7 @@ function AppLayout({ children }) {
         </Drawer>
       )}
 
-      <Grid container height={"calc(100vh - 4rem)"}>
+      <Grid container height={"calc(100vh - 4rem)"} sx={{ background: "linear-gradient(135deg, #0f172a 0%, #0d1526 100%)" }}>
         <Grid
           size={{ sm: 4, md: 3 }}
           sx={{ display: { xs: "none", sm: "block" } }}
@@ -136,15 +144,22 @@ function AppLayout({ children }) {
           {cloneElement(children, {
             chatId: chatId,
             user: user,
-            // any other props you want to pass
+            onlineUsers: onlineUsers,
           })}
         </Grid>
         <Grid
           size={{ sm: 4, md: 4, lg: 3 }}
           sx={{
             display: { xs: "none", md: "block" },
-            padding: "2rem",
-            bgcolor: "rgba(0,0,0,0.85)",
+            padding: "1.25rem",
+            background: "linear-gradient(180deg, #1a2236 0%, #141d2e 100%)",
+            borderLeft: "1px solid rgba(255,255,255,0.07)",
+            overflowY: "auto",
+            "&::-webkit-scrollbar": { width: "3px" },
+            "&::-webkit-scrollbar-thumb": {
+              bgcolor: "rgba(96,165,250,0.2)",
+              borderRadius: "4px",
+            },
           }}
           height={"100%"}
         >

@@ -9,6 +9,8 @@ import {
   newUser,
   searchUser,
   sendFriendRequest,
+  updateProfile,
+  updateAvatar,
 } from "../controllers/user.js";
 import { singleAvatar } from "../middlewares/multer.js";
 import { isAuthenticated } from "../middlewares/auth.js";
@@ -38,6 +40,8 @@ router.use(isAuthenticated);
 
 router.get("/me", getMyProfile);
 router.post("/logout", logout);
+router.put("/profile", updateProfile);
+router.put("/avatar", singleAvatar, updateAvatar);
 
 router.get("/search", searchUser);
 

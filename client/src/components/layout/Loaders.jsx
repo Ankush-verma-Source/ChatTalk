@@ -34,35 +34,30 @@ function LayoutLoader() {
 const TypingLoader = () => {
   return (
     <Stack
-      spacing={"0.5rem"}
+      spacing={"0.4rem"}
       direction={"row"}
-      padding={"0.5rem"}
-      justifyContent={"center"}
+      padding={"0.6rem 1rem"}
+      alignSelf={"flex-start"}
+      sx={{
+        bgcolor: "rgba(30,41,59,0.8)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        borderRadius: "18px 18px 18px 4px",
+        width: "fit-content",
+      }}
     >
-      <BouncingSkeleton
-        variant="circular"
-        width={15}
-        height={15}
-        style={{ animationDealy: "0.1s" }}
-      />
-      <BouncingSkeleton
-        variant="circular"
-        width={15}
-        height={15}
-        style={{ animationDealy: "0.2s" }}
-      />
-      <BouncingSkeleton
-        variant="circular"
-        width={15}
-        height={15}
-        style={{ animationDealy: "0.4s" }}
-      />
-      <BouncingSkeleton
-        variant="circular"
-        width={15}
-        height={15}
-        style={{ animationDealy: "0.6s" }}
-      />
+      {[0.1, 0.25, 0.4].map((delay, i) => (
+        <BouncingSkeleton
+          key={i}
+          variant="circular"
+          width={8}
+          height={8}
+          style={{
+            animationDelay: `${delay}s`,
+            backgroundColor: "#3b82f6",
+            opacity: 0.7,
+          }}
+        />
+      ))}
     </Stack>
   );
 };
