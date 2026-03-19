@@ -124,6 +124,11 @@ function Login() {
       "& fieldset": { border: "1px solid rgba(255, 255, 255, 0.04)" },
       "&:hover fieldset": { borderColor: "rgba(255, 255, 255, 0.12)" },
       "&.Mui-focused fieldset": { borderColor: "#3b82f6", borderWidth: "2px" },
+      "& input:-webkit-autofill": {
+        WebkitBoxShadow: "0 0 0 1000px #1e293b inset",
+        WebkitTextFillColor: "#f8fafc",
+        transition: "background-color 5000s ease-in-out 0s",
+      },
     },
     "& .MuiInputLabel-root": { color: "#64748b" },
     "& .MuiInputLabel-root.Mui-focused": { color: "#60a5fa" }, // Brighter floating label
