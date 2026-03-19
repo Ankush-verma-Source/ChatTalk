@@ -71,18 +71,13 @@ const getMyProfile = TryCatch(async (req, res, next) => {
 });
 
 const logout = TryCatch(async (req, res) => {
-  // return res
-  //   .status(200)
-  //   .cookie("Chattalk-token", "", { ...cookieOptions, maxAge: 0 })
-  //   .json({
-  //     success: true,
-  //     message: "Logged out Successfully",
-  //   });
-  // console.log("logout called............");
-  res.clearCookie("Chattalk-token", { path: "/" }).status(200).json({
-    success: true,
-    message: "Logged out Successfully",
-  });
+  return res
+    .status(200)
+    .cookie("Chattalk-token", "", { ...cookieOptions, maxAge: 0 })
+    .json({
+      success: true,
+      message: "Logged out Successfully",
+    });
 });
 
 const searchUser = TryCatch(async (req, res) => {
