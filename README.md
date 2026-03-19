@@ -42,7 +42,7 @@ ChatTalk operates as a **Unified Real-time System**:
 ## ⚡️ Core Interaction Flows
 
 ### 1. Robust Authentication
-ChatTalk uses a secure **JWT-in-Cookie** strategy. Upon login, the server issues a token stored in a secure, HTTP-only cookie. The `isAuthenticated` middleware protects sensitive API routes, while the `socketAuthenticator` ensures that only logged-in users can reach the WebSocket layer.
+ChatTalk uses a secure **JWT-in-Cookie** strategy. Upon login, the server issues a token stored in a secure, HTTP-only cookie. The application is optimized for **cross-domain authentication** and maintains seamless compatibility with **Apple devices (Safari/iOS)** through the use of Partitioned Cookies (CHIPS) and `trust proxy` configurations.
 
 ### 2. Event-Driven Real-time Synchronization
 The application relies on a curated list of socket events (e.g., `NEW_MESSAGE`, `START_TYPING`). When a user performs an action:

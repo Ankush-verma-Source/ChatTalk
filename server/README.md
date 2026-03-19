@@ -5,7 +5,7 @@ This is the high-performance, event-driven Node.js backend for ChatTalk. It is b
 ## 🏗 Backend Philosophy
 
 -   **Event-Driven**: The system is designed around the concept of "Emissions". Every significant action triggers a socket event to keep all clients in sync.
--   **Secure by Design**: Uses JWT-based authentication with `httpOnly` cookies and strict socket-level authorization.
+-   **Secure by Design**: Uses JWT-based authentication with `httpOnly` cookies and strict socket-level authorization. Fully compatible with cross-site environments via **Partitioned Cookies (CHIPS)** and **Trust Proxy** support.
 -   **Scalable Attachments**: Offloads heavy lifting (processing and storage) to Cloudinary, keeping the server lean.
 
 ---

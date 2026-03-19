@@ -9,7 +9,7 @@ This is the standalone React frontend for ChatTalk, built with a focus on high p
     -   **RTK Query**: Manages the entire server-state lifecycle (fetching, caching, synchronization).
     -   **Slices**: Manages client-side state for auth, navigation alerts, and UI modals.
 -   **Socket.io-client**: Maintains a persistent WebSocket connection, abstracted through custom hooks and context.
--   **Material UI (MUI) 7**: A refined implementation of Material Design with heavily customized themes for a unique "Glassmorphism" look.
+-   **Material UI (MUI) 7**: A refined implementation of Material Design with heavily customized themes for a unique "Glassmorphism" look, including optimized input fields with theme-consistent autofill styling for all browsers.
 -   **Framer Motion**: powers all micro-interactions, page transitions, and the dynamic sidebar animations.
 
 ---
