@@ -6,10 +6,11 @@ import { getSockets } from "../lib/helper.js";
 
 const cookieOptions = {
   maxAge: 7 * 24 * 60 * 60 * 1000,
-  sameSite: "none",
+  sameSite: process.env.NODE_ENV === "DEVELOPMENT" ? "lax" : "none",
   httpOnly: true,
-  secure: true,
+  secure: process.env.NODE_ENV === "DEVELOPMENT" ? false : true,
   path: "/",
+  partitioned: true,
 };
 
 const connectDB = (url) => {
