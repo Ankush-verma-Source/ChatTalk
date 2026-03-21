@@ -2,6 +2,29 @@
 
 ChatTalk is a powerful, high-performance MERN-stack application designed to provide a seamless, modern, and highly interactive chat experience. It combines a state-of-the-art React frontend with a robust, event-driven Node.js backend.
 
+---
+
+## 🚀 Quick Start Guide (For Evaluators)
+
+To run this project locally without any database connection errors, please follow these steps carefully:
+
+### 1. Backend Setup
+1. Open a terminal and navigate to the server folder: `cd server`
+2. Install dependencies: `npm install`
+3. **CRITICAL STEP**: The project requires environment variables to connect to MongoDB and Cloudinary. 
+   - Rename the provided `.env.example` file to `.env` OR create a new `.env` file and copy the contents of `.env.example` into it.
+   - Fill in your actual MongoDB URI and Cloudinary credentials in the `.env` file.
+4. Start the backend server: `npm start` (It will run on port 3000)
+
+### 2. Frontend Setup
+1. Open a second terminal and navigate to the client folder: `cd client`
+2. Install dependencies: `npm install`
+3. **Important**: Ensure your `client/.env` file exists and points to the server (you can copy `.env.example` to `.env`).
+4. Start the React development server: `npm run dev`
+5. Visit the link provided in the terminal (usually `http://localhost:5173`) to view the application.
+
+---
+
 ## 🏗 High-Level Architecture
 
 ChatTalk operates as a **Unified Real-time System**:

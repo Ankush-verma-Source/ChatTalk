@@ -14,11 +14,15 @@ const cookieOptions = {
 };
 
 const connectDB = (url) => {
+  if (!url) {
+    throw new Error("MongoDB connection URL is missing. Check your environment configuration.");
+  }
   mongoose
     .connect(url, { dbName: "ChatTalk" })
     .then((data) => console.log(`Connected to DB: ${data.connection.host}`))
     .catch((err) => {
-      throw err;
+      console.error("Error connecting to MongoDB", err.message);
+      process.exit(1);
     });
 };
 

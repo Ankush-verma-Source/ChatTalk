@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import { useState } from "react";
 import { VisuallyHiddenInput } from "../components/styles/styledComponents";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { useFileHandler, useInputValidation, useStrongPassword } from "6pp";
 
@@ -171,9 +172,17 @@ function Login() {
             color: "#f8fafc"
           }}
         >
-          {isLogin ? (
-            <>
-              <Box sx={{ p: 2, borderRadius: "50%", background: "rgba(59, 130, 246, 0.1)", mb: 3 }}>
+          <AnimatePresence mode="wait">
+            {isLogin ? (
+              <motion.div
+                key="login-form"
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 20 }}
+                transition={{ duration: 0.3 }}
+                style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}
+              >
+                <Box sx={{ p: 2, borderRadius: "50%", background: "rgba(59, 130, 246, 0.1)", mb: 3 }}>
                 <ChatBubbleIcon sx={{ fontSize: "3rem", color: "#3b82f6" }} />
               </Box>
               <Typography variant="h4" fontWeight="700" gutterBottom sx={{ color: "#f8fafc", letterSpacing: "-0.02em" }}>
@@ -263,10 +272,17 @@ function Login() {
                   Create an account
                 </Button>
               </form>
-            </>
-          ) : (
-            <>
-              <Box sx={{ p: 2, borderRadius: "50%", background: "rgba(59, 130, 246, 0.1)", mb: 3 }}>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="signup-form"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.3 }}
+                style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}
+              >
+                <Box sx={{ p: 2, borderRadius: "50%", background: "rgba(59, 130, 246, 0.1)", mb: 3 }}>
                 <AccountCircleIcon sx={{ fontSize: "3rem", color: "#3b82f6" }} />
               </Box>
               <Typography variant="h4" fontWeight="700" gutterBottom sx={{ color: "#f8fafc", letterSpacing: "-0.02em" }}>
@@ -431,8 +447,9 @@ function Login() {
                   Login Instead
                 </Button>
               </form>
-            </>
-          )}
+              </motion.div>
+            )}
+          </AnimatePresence>
           </Paper>
       </Container>
     </Box>

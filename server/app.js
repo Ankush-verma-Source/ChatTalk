@@ -33,6 +33,17 @@ dotenv.config({
 });
 
 const mongo_URL = process.env.MONGO_URL;
+
+if (!mongo_URL) {
+  console.error(
+    "CRITICAL ERROR: MONGO_URL is not defined in the environment variables."
+  );
+  console.error(
+    "Please create a .env file in the server directory based on .env.example and set your MONGO_URL."
+  );
+  process.exit(1);
+}
+
 const PORT = process.env.PORT || 3000;
 const envMode = (process.env.NODE_ENV || "PRODUCTION").trim();
 const adminSecretKey = process.env.ADMIN_SECRET_KEY || "admin1";
